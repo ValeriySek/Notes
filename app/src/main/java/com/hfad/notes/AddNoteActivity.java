@@ -62,6 +62,7 @@ public class AddNoteActivity extends AppCompatActivity {
         String title = titleEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
         int dayOfWeek = dayOfWeekEditText.getListSelection();
+        String day = dayOfWeekEditText.getText().toString();
         int radioButtonId = radioGroup.getCheckedRadioButtonId();
         RadioButton radioButton = findViewById(radioButtonId);
         int priority = Integer.parseInt(radioButton.getText().toString());
