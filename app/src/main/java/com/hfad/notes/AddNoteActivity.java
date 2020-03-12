@@ -23,13 +23,13 @@ public class AddNoteActivity extends AppCompatActivity {
     private AutoCompleteTextView dayOfWeekEditText;
     private MaterialButton buttonAddNote;
     private RadioGroup radioGroup;
-    NotesDBHelper dbHelper;
-    SQLiteDatabase database;
+    private NotesDatabase notesDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_note);
+        notesDatabase = NotesDatabase.getInstance(this);
 
         titleEditText = findViewById(R.id.title_edit_text);
         descriptionEditText = findViewById(R.id.description_edit_text);
@@ -37,8 +37,6 @@ public class AddNoteActivity extends AppCompatActivity {
         buttonAddNote = findViewById(R.id.button_add_note);
         radioGroup = findViewById(R.id.radioGroup);
 
-        dbHelper = new NotesDBHelper(this);
-        database = dbHelper.getWritableDatabase();
 
         String[] DAYS = getResources().getStringArray(R.array.days_of_week);
         dayOfWeekEditText.setText(DAYS[0]);
@@ -61,18 +59,14 @@ public class AddNoteActivity extends AppCompatActivity {
     public void onClickSaveNote(){
         String title = titleEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
-        int dayOfWeek = dayOfWeekEditText.getListSelection();
         String day = dayOfWeekEditText.getText().toString();
         int radioButtonId = radioGroup.getCheckedRadioButtonId();
         RadioButton radioButton = findViewById(radioButtonId);
         int priority = Integer.parseInt(radioButton.getText().toString());
+
         if (isFilled(title,description)){
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(NotesContract.NotesEntry.COLUMN_TITLE, title);
-            contentValues.put(NotesContract.NotesEntry.COLUMN_DESCRIPTION, description);
-            contentValues.put(NotesContract.NotesEntry.COLUMN_DAY_OF_WEEK, dayOfWeek + 1);
-            contentValues.put(NotesContract.NotesEntry.COLUMN_PRIORITY, priority);
-            database.insert(NotesContract.NotesEntry.TABLE_NAME, null, contentValues);
+            Note note = new Note(title, description, day, priority);
+            notesDatabase.notesDao().insertNote(note);
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);finish();
         } else {

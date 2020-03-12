@@ -2,6 +2,8 @@ package com.hfad.notes;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -24,18 +26,14 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerViewHolder;
     private final ArrayList<Note> noteArrayList = new ArrayList<>();
     private NoteAdapter noteAdapter;
-    private NotesDBHelper dbHelper;
-    private SQLiteDatabase sqLiteDatabase;
+    private NotesDatabase notesDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        notesDatabase = NotesDatabase.getInstance(this);
         recyclerViewHolder = findViewById(R.id.recyclerViewHolder);
-
-        dbHelper = new NotesDBHelper(this);
-        sqLiteDatabase = dbHelper.getWritableDatabase();
-
         getData();
         noteAdapter = new NoteAdapter(noteArrayList);
         recyclerViewHolder.setLayoutManager(new LinearLayoutManager(getApplication()));
@@ -51,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
                 removeNote(position);
             }
         });
+
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(
                 new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT|ItemTouchHelper.RIGHT) {
             @Override
@@ -69,12 +68,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void removeNote(int position){
-        int id = noteArrayList.get(position).getId();
-        String where = NotesContract.NotesEntry._ID + " = ?";
-        String[] strings = new String[]{Integer.toString(id)};
-        sqLiteDatabase.delete(NotesContract.NotesEntry.TABLE_NAME, where, strings);
-        getData();
-        noteAdapter.notifyDataSetChanged();
+        Note note = noteArrayList.get(position);
+        notesDatabase.notesDao().deleteNote(note);
     }
 
     public void onClickAddNote(View view) {
@@ -83,17 +78,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getData(){
-        noteArrayList.clear();
-        Cursor cursor = sqLiteDatabase.query(NotesContract.NotesEntry.TABLE_NAME, null, null, null, null, null, null);
-        while (cursor.moveToNext()){
-            int id  = cursor.getInt(cursor.getColumnIndex(NotesContract.NotesEntry._ID));
-            String title = cursor.getString(cursor.getColumnIndex(NotesContract.NotesEntry.COLUMN_TITLE));
-            String description = cursor.getString(cursor.getColumnIndex(NotesContract.NotesEntry.COLUMN_DESCRIPTION));
-            int dayOfWeek = cursor.getInt(cursor.getColumnIndex(NotesContract.NotesEntry.COLUMN_DAY_OF_WEEK));
-            int priority = cursor.getInt(cursor.getColumnIndex(NotesContract.NotesEntry.COLUMN_PRIORITY));
-            Note note = new Note(id, title, description, dayOfWeek, priority);
-            noteArrayList.add(note);
-        }
-        cursor.close();
+        LiveData<List<Note>> notesFromDB = notesDatabase.notesDao().getAllNotes();
+        notesFromDB.observe(this, new Observer<List<Note>>() {
+            @Override
+            public void onChanged(List<Note> notes) {
+                noteArrayList.clear();
+                noteArrayList.addAll(notes);
+                noteAdapter.notifyDataSetChanged();
+            }
+        });
+
     }
 }

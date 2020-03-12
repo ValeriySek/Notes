@@ -1,14 +1,28 @@
 package com.hfad.notes;
 
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "notes")
 public class Note {
     private String title;
     private String description;
-    private int dayOfWeek;
+    private String dayOfWeek;
     private int priority;
+    @PrimaryKey(autoGenerate = true)
     private int id;
 
-    public Note(int id, String title, String description, int dayOfWeek, int priority) {
+    public Note(int id, String title, String description, String dayOfWeek, int priority) {
         this.id = id;
+        this.title = title;
+        this.description = description;
+        this.dayOfWeek = dayOfWeek;
+        this.priority = priority;
+    }
+
+    @Ignore
+    public Note(String title, String description, String dayOfWeek, int priority) {
         this.title = title;
         this.description = description;
         this.dayOfWeek = dayOfWeek;
@@ -27,7 +41,7 @@ public class Note {
         return description;
     }
 
-    public int getDayOfWeek() {
+    public String getDayOfWeek() {
         return dayOfWeek;
     }
 
@@ -35,22 +49,23 @@ public class Note {
         return priority;
     }
 
-    public static String getDayAsWeek(int position){
-        switch (position){
-            case 1:
-                return "Понедельник";
-            case 2:
-                return "Вторник";
-            case 3:
-                return "Среда";
-            case 4:
-                return "Четверг";
-            case 5:
-                return "Пятница";
-            case 6:
-                return "Суббота";
-            default:
-                return "Воскресенье";
-        }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setDayOfWeek(String dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
