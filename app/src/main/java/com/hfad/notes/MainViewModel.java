@@ -32,6 +32,10 @@ public class MainViewModel extends AndroidViewModel {
         new DeleteTask().execute(note);
     }
 
+    public void deleteAllNote(){
+        new DeleteAllTask().execute();
+    }
+
     private static class InsertTask extends AsyncTask<Note, Void, Void> {
 
         @Override
@@ -50,6 +54,15 @@ public class MainViewModel extends AndroidViewModel {
             if(notes != null && notes.length > 0){
                 notesDatabase.notesDao().deleteNote(notes[0]);
             }
+            return null;
+        }
+    }
+
+    private static class DeleteAllTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... notes) {
+            notesDatabase.notesDao().deleteAllNotes();
             return null;
         }
     }
